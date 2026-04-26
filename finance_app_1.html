@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>자산관리 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F0F0F;
+  --surface: #1A1A1A;
+  --surface2: #222222;
+  --surface3: #2A2A2A;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #F0EEE8;
+  --muted: #888780;
+  --hint: #555450;
+
+  --red: #E24B4A;
+  --red-bg: rgba(226,75,74,0.12);
+  --green: #34C77B;
+  --green-bg: rgba(52,199,123,0.12);
+  --amber: #F5A623;
+  --amber-bg: rgba(245,166,35,0.12);
+  --purple: #9B8EF0;
+  --purple-bg: rgba(155,142,240,0.12);
+  --blue: #5B9CF6;
+  --blue-bg: rgba(91,156,246,0.12);
+  --gray-bg: rgba(255,255,255,0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+/* ── NAV ── */
+.nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(15,15,15,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 0.5px solid var(--border2);
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 0 8px;
+  gap: 4px; cursor: pointer;
+  font-size: 10px; color: var(--hint);
+  transition: color 0.2s;
+  border: none; background: none;
+}
+.nav-item.active { color: var(--text); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ── PAGES ── */
+.page { display: none; padding: 0 0 16px; }
+.page.active { display: block; }
+
+/* ── HEADER ── */
+.page-header {
+  padding: 56px 20px 20px;
+}
+.page-title {
+  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1.1; margin-bottom: 6px;
+}
+.page-subtitle { font-size: 13px; color: var(--muted); }
+
+/* ── INCOME CARD ── */
+.income-card {
+  margin: 0 16px 20px;
+  background: linear-gradient(135deg, #1D2A1D 0%, #1A241F 100%);
+  border: 0.5px solid rgba(52,199,123,0.25);
+  border-radius: 20px;
+  padding: 20px;
+}
+.income-label { font-size: 11px; color: rgba(52,199,123,0.7); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.income-amount { font-size: 36px; font-weight: 700; color: var(--green); letter-spacing: -0.04em; }
+.income-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.income-detail {
+  display: flex; gap: 12px; margin-top: 16px;
+  padding-top: 16px; border-top: 0.5px solid rgba(255,255,255,0.08);
+}
+.income-detail-item { flex: 1; }
+.income-detail-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+.income-detail-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* ── SECTION ── */
+.section { padding: 0 16px; margin-bottom: 8px; }
+.section-title {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--hint); margin-bottom: 10px;
+}
+
+/* ── BUCKET CARD ── */
+.bucket-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.bucket-card:active { transform: scale(0.98); }
+.bucket-head {
+  padding: 16px 16px 12px;
+  display: flex; align-items: flex-start; gap: 12px;
+  cursor: pointer;
+}
+.bucket-badge {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; flex-shrink: 0;
+}
+.bucket-meta { flex: 1; }
+.bucket-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.bucket-desc { font-size: 11px; color: var(--muted); }
+.bucket-right { text-align: right; flex-shrink: 0; }
+.bucket-amount { font-size: 17px; font-weight: 700; }
+.bucket-pct { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.bucket-bar {
+  height: 3px; background: var(--surface3);
+  margin: 0 16px 12px;
+}
+.bucket-bar-fill { height: 3px; border-radius: 1.5px; transition: width 0.6s ease; }
+
+.bucket-body {
+  padding: 0 16px 16px;
+  display: none;
+}
+.bucket-body.open { display: block; }
+
+/* Card chips */
+.card-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2px; }
+.chip-card {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  flex: 1; min-width: 130px;
+}
+.chip-card.highlight {
+  background: var(--blue-bg);
+  border-color: rgba(91,156,246,0.3);
+}
+.chip-card-label { font-size: 9px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.chip-card.highlight .chip-card-label { color: var(--blue); }
+.chip-card-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.chip-card-items { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 6px; }
+.chip-card-amount { font-size: 13px; font-weight: 700; }
+
+/* Tag chips */
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  background: var(--surface3);
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px; color: var(--muted);
+}
+
+/* ── SUMMARY BAR ── */
+.summary-bar {
+  margin: 16px 16px 0;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.summary-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 7px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 13px;
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-label { color: var(--muted); }
+.summary-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; display: inline-block; }
+.summary-value { font-weight: 600; }
+.summary-total {
+  display: flex; justify-content: space-between;
+  align-items: center; padding-top: 12px; margin-top: 4px;
+  border-top: 0.5px solid var(--border2);
+  font-size: 15px; font-weight: 700;
+}
+
+/* ── CALENDAR PAGE ── */
+.timeline { padding: 0 16px; position: relative; }
+.tl-line {
+  position: absolute; left: 44px; top: 0; bottom: 0;
+  width: 1px; background: var(--border2);
+}
+
+.tl-item { display: flex; gap: 12px; margin-bottom: 12px; position: relative; }
+.tl-left {
+  width: 28px; flex-shrink: 0; display: flex;
+  flex-direction: column; align-items: center;
+  padding-top: 14px; gap: 2px;
+}
+.tl-day { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; line-height: 1; }
+.tl-sub { font-size: 9px; color: var(--hint); text-align: center; }
+.tl-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--bg);
+  position: absolute; left: 38px; top: 16px; z-index: 1;
+}
+.tl-card {
+  flex: 1;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.tl-card.open { border-color: var(--border2); }
+.tl-card-head {
+  padding: 12px 14px;
+  display: flex; justify-content: space-between;
+  align-items: center;
+}
+.tl-card-title { font-size: 13px; font-weight: 600; }
+.tl-badge {
+  font-size: 9px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.tl-card-body { padding: 0 14px 12px; display: none; }
+.tl-card-body.open { display: block; }
+.tl-task {
+  display: flex; align-items: flex-start;
+  gap: 8px; padding: 4px 0; font-size: 12px; color: var(--muted);
+  line-height: 1.5;
+}
+.tl-task-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.tl-task b { color: var(--text); font-weight: 600; }
+.tl-divider { height: 0.5px; background: var(--border); margin: 6px 0 8px; }
+
+/* Flow strip */
+.flow-strip {
+  margin: 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex; align-items: center;
+  gap: 6px; flex-wrap: wrap;
+}
+.flow-chip {
+  font-size: 11px; font-weight: 600;
+  padding: 5px 10px; border-radius: 20px;
+}
+.flow-arrow { font-size: 11px; color: var(--hint); }
+
+/* Quarter card */
+.quarter-card {
+  margin: 0 16px 16px;
+  background: var(--blue-bg);
+  border: 0.5px solid rgba(91,156,246,0.2);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.quarter-title { font-size: 12px; font-weight: 600; color: var(--blue); margin-bottom: 10px; }
+.quarter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.quarter-item {
+  display: flex; align-items: flex-start; gap: 6px;
+  font-size: 11px; color: var(--muted); padding: 3px 0; line-height: 1.4;
+}
+.quarter-item-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--blue); flex-shrink: 0; margin-top: 4px; }
+
+/* ── CARD PAGE (카드) ── */
+.card-section { padding: 0 16px; margin-bottom: 16px; }
+.card-role {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.card-role-head {
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.card-icon {
+  width: 44px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; letter-spacing: -0.02em;
+}
+.card-role-info { flex: 1; }
+.card-role-name { font-size: 14px; font-weight: 600; }
+.card-role-tag { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.card-role-amount { font-size: 15px; font-weight: 700; }
+.card-role-body { padding: 0 16px 14px; border-top: 0.5px solid var(--border); padding-top: 12px; }
+.card-role-items { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.card-role-item {
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: var(--muted);
+}
+.hana-note {
+  background: var(--blue-bg); border: 0.5px solid rgba(91,156,246,0.2);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 11px; color: rgba(91,156,246,0.9); line-height: 1.6;
+}
+.hana-note strong { color: var(--blue); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page.active .bucket-card,
+.page.active .tl-item,
+.page.active .card-role {
+  animation: fadeUp 0.3s ease both;
+}
+.page.active .bucket-card:nth-child(1) { animation-delay: 0.05s; }
+.page.active .bucket-card:nth-child(2) { animation-delay: 0.1s; }
+.page.active .bucket-card:nth-child(3) { animation-delay: 0.15s; }
+.page.active .bucket-card:nth-child(4) { animation-delay: 0.2s; }
+.page.active .bucket-card:nth-child(5) { animation-delay: 0.25s; }
+.page.active .tl-item:nth-child(2) { animation-delay: 0.05s; }
+.page.active .tl-item:nth-child(3) { animation-delay: 0.1s; }
+.page.active .tl-item:nth-child(4) { animation-delay: 0.15s; }
+.page.active .tl-item:nth-child(5) { animation-delay: 0.2s; }
+.page.active .tl-item:nth-child(6) { animation-delay: 0.25s; }
+.page.active .tl-item:nth-child(7) { animation-delay: 0.3s; }
+
+.chevron {
+  font-size: 12px; color: var(--hint);
+  transition: transform 0.2s;
+}
+.chevron.open { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+
+<!-- ───────────────── PAGE 1: 버킷 ───────────────── -->
+<div class="page active" id="page-bucket">
+  <div class="page-header">
+    <div class="page-title">월 버킷<br>설계</div>
+    <div class="page-subtitle">실수령 565만원 기준 · 카드 역할 분리 포함</div>
+  </div>
+
+  <div class="income-card" style="margin: 0 16px 20px;">
+    <div class="income-label">월 실수령 (세후 추정)</div>
+    <div class="income-amount">5,650,000</div>
+    <div class="income-sub">연봉 9,040만 · L6 Staff Product Designer</div>
+    <div class="income-detail">
+      <div class="income-detail-item">
+        <div class="income-detail-label">기본급 (세전)</div>
+        <div class="income-detail-value">750만원</div>
+      </div>
+      <div class="income-detail-item">
+        <div class="income-detail-label">성과급 (3월 지급)</div>
+        <div class="income-detail-value">1,227만원</div>
+      </div>
+      <div class="income-detail-item">
+        <div class="income-detail-label">RSU (베스팅)</div>
+        <div class="income-detail-value">별도관리</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">버킷 구조</div>
+
+    <!-- B1 고정지출 -->
+    <div class="bucket-card" onclick="toggleBucket(this)">
+      <div class="bucket-head">
+        <div class="bucket-badge" style="background:var(--red-bg);color:var(--red)">1</div>
+        <div class="bucket-meta">
+          <div class="bucket-name">고정지출</div>
+          <div class="bucket-desc">자동이체·자동청구. 건드릴 수 없는 영역.</div>
+        </div>
+        <div class="bucket-right">
+          <div class="bucket-amount" style="color:var(--red)">153만</div>
+          <div class="bucket-pct">27% · 월급날 자동</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bucket-bar"><div class="bucket-bar-fill" style="width:27%;background:var(--red)"></div></div>
+      <div class="bucket-body">
+        <div class="card-chips">
+          <div class="chip-card">
+            <div class="chip-card-label">하나 스카이패스 — 자동청구</div>
+            <div class="chip-card-name">구독·할부</div>
+            <div class="chip-card-items">넷플릭스·애플·유튜브·쿠팡멤버십<br>클로드·카카오서랍·네이버·쿠쿠<br>KT·아이폰할부</div>
+            <div class="chip-card-amount" style="color:var(--red)">약 37.9만</div>
+          </div>
+          <div class="chip-card">
+            <div class="chip-card-label">자동이체 (통장)</div>
+            <div class="chip-card-name">이자·보험·기타</div>
+            <div class="chip-card-items">전세대출이자 73.5만<br>신용대출이자 18만<br>삼성화재·누나이자·겟돈·주유</div>
+            <div class="chip-card-amount" style="color:var(--red)">약 112.6만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B2 선저축 -->
+    <div class="bucket-card" onclick="toggleBucket(this)">
+      <div class="bucket-head">
+        <div class="bucket-badge" style="background:var(--green-bg);color:var(--green)">2</div>
+        <div class="bucket-meta">
+          <div class="bucket-name">선저축</div>
+          <div class="bucket-desc">급여일 당일 자동이체. 생활비보다 먼저.</div>
+        </div>
+        <div class="bucket-right">
+          <div class="bucket-amount" style="color:var(--green)">150만</div>
+          <div class="bucket-pct">27% · 25일 자동</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bucket-bar"><div class="bucket-bar-fill" style="width:27%;background:var(--green)"></div></div>
+      <div class="bucket-body">
+        <div class="tag-chips">
+          <span class="tag">파킹통장 or CMA 100만</span>
+          <span class="tag">투자계좌 ETF 50만</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- B3 생활비 -->
+    <div class="bucket-card" onclick="toggleBucket(this)">
+      <div class="bucket-head">
+        <div class="bucket-badge" style="background:var(--amber-bg);color:var(--amber)">3</div>
+        <div class="bucket-meta">
+          <div class="bucket-name">생활비</div>
+          <div class="bucket-desc">식사·생활용품·교통. 예산 내 자유 소비.</div>
+        </div>
+        <div class="bucket-right">
+          <div class="bucket-amount" style="color:var(--amber)">150만</div>
+          <div class="bucket-pct">27%</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bucket-bar"><div class="bucket-bar-fill" style="width:27%;background:var(--amber)"></div></div>
+      <div class="bucket-body">
+        <div class="card-chips">
+          <div class="chip-card highlight">
+            <div class="chip-card-label">하나 스카이패스 — 실적 채우기</div>
+            <div class="chip-card-name">오프라인 마트·주유</div>
+            <div class="chip-card-items">고정비 37.9만 + 여기서 32만<br>= 실적 합산 <strong style="color:var(--blue)">약 70만원 달성</strong><br>→ 대출이자 감면 + 마일리지</div>
+            <div class="chip-card-amount" style="color:var(--blue)">32만</div>
+          </div>
+          <div class="chip-card">
+            <div class="chip-card-label">쿠팡 와우 카드</div>
+            <div class="chip-card-name">온라인·쿠팡 전용</div>
+            <div class="chip-card-items">식료품·생활용품<br>쿠팡 구매 전반</div>
+            <div class="chip-card-amount" style="color:var(--amber)">118만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B4 버퍼 -->
+    <div class="bucket-card" onclick="toggleBucket(this)">
+      <div class="bucket-head">
+        <div class="bucket-badge" style="background:var(--purple-bg);color:var(--purple)">4</div>
+        <div class="bucket-meta">
+          <div class="bucket-name">카드값 버퍼</div>
+          <div class="bucket-desc">초과 지출·돌발 상황 흡수용.</div>
+        </div>
+        <div class="bucket-right">
+          <div class="bucket-amount" style="color:var(--purple)">80만</div>
+          <div class="bucket-pct">14% · 매달 리필</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bucket-bar"><div class="bucket-bar-fill" style="width:14%;background:var(--purple)"></div></div>
+      <div class="bucket-body">
+        <div class="tag-chips">
+          <span class="tag">쿠팡·현대카드 초과분 흡수</span>
+          <span class="tag">경조사·돌발 지출 대응</span>
+          <span class="tag">1일 소진 → 25일 리필</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- B5 여가 -->
+    <div class="bucket-card" onclick="toggleBucket(this)">
+      <div class="bucket-head">
+        <div class="bucket-badge" style="background:var(--gray-bg);color:var(--muted)">5</div>
+        <div class="bucket-meta">
+          <div class="bucket-name">여가·자유 소비</div>
+          <div class="bucket-desc">소진해도 죄책감 없는 영역.</div>
+        </div>
+        <div class="bucket-right">
+          <div class="bucket-amount" style="color:var(--muted)">32만</div>
+          <div class="bucket-pct">6%</div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bucket-bar"><div class="bucket-bar-fill" style="width:6%;background:var(--muted)"></div></div>
+      <div class="bucket-body">
+        <div class="card-chips">
+          <div class="chip-card" style="min-width:unset;flex:unset">
+            <div class="chip-card-label">현대카드 블랙</div>
+            <div class="chip-card-name">외식·여가 전용</div>
+            <div class="chip-card-items">홍대 외출·술자리<br>카페·문화생활</div>
+            <div class="chip-card-amount" style="color:var(--muted)">32만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-row">
+      <span><span class="summary-dot" style="background:var(--red)"></span><span class="summary-label">고정지출</span></span>
+      <span class="summary-value" style="color:var(--red)">153만원</span>
+    </div>
+    <div class="summary-row">
+      <span><span class="summary-dot" style="background:var(--green)"></span><span class="summary-label">선저축</span></span>
+      <span class="summary-value" style="color:var(--green)">150만원</span>
+    </div>
+    <div class="summary-row">
+      <span><span class="summary-dot" style="background:var(--amber)"></span><span class="summary-label">생활비</span></span>
+      <span class="summary-value" style="color:var(--amber)">150만원</span>
+    </div>
+    <div class="summary-row">
+      <span><span class="summary-dot" style="background:var(--purple)"></span><span class="summary-label">카드값 버퍼</span></span>
+      <span class="summary-value" style="color:var(--purple)">80만원</span>
+    </div>
+    <div class="summary-row">
+      <span><span class="summary-dot" style="background:var(--muted)"></span><span class="summary-label">여가</span></span>
+      <span class="summary-value">32만원</span>
+    </div>
+    <div class="summary-total">
+      <span>합계</span>
+      <span style="color:var(--green)">565만원</span>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────── PAGE 2: 캘린더 ───────────────── -->
+<div class="page" id="page-cal">
+  <div class="page-header">
+    <div class="page-title">월간<br>루틴</div>
+    <div class="page-subtitle">급여 25일 / 카드 결제일 1일 기준</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-line"></div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day">1일</div>
+        <div class="tl-sub">결제일</div>
+      </div>
+      <div class="tl-dot" style="background:var(--red)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">카드 3장 결제</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--red-bg);color:var(--red)">★ 핵심</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--red)"></div>현대카드 결제 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--red)"></div>하나카드 결제 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--red)"></div>국민카드 결제 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>3장 합산액이 버퍼 안에서 해결됐는지 체크</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>버퍼 계좌 잔액 확인 → 25일에 다시 채울 예정 인지</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day">1일</div>
+        <div class="tl-sub">직후</div>
+      </div>
+      <div class="tl-dot" style="background:var(--amber)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">소비 리셋</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--amber-bg);color:var(--amber)">10분</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>뱅샐에서 지난달 소비 총액 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>생활비 150만원 초과 여부 체크</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>여가 32만원 초과 여부 체크</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>초과했으면 이번 달 어디서 줄일지 가볍게 결정</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day" style="font-size:10px">1~24</div>
+        <div class="tl-sub">일상</div>
+      </div>
+      <div class="tl-dot" style="background:var(--hint)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">그냥 사는 기간</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--gray-bg);color:var(--muted)">자유</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>쿠팡 와우 카드 이번 달 잔여 한도 가끔 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>여가 버킷 32만원 소진 속도 체감</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>돌발 지출은 버퍼 80만원이 흡수 — 걱정 없음</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day" style="font-size:10px">20~24</div>
+        <div class="tl-sub">점검</div>
+      </div>
+      <div class="tl-dot" style="background:var(--purple)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">급여 전 점검</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--purple-bg);color:var(--purple)">5분</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--purple)"></div>현대·하나·국민 앱에서 다음달 1일 청구 예정액 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--purple)"></div>3장 합산이 230만원 넘으면 버퍼 보충분 더 잡아두기</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day">25일</div>
+        <div class="tl-sub">급여일</div>
+      </div>
+      <div class="tl-dot" style="background:var(--green)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">급여 처리</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--green-bg);color:var(--green)">★ 핵심</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--green)"></div><b>① 급여 입금 확인</b></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--green)"></div><b>② 저축 150만원 자동이체 출금 확인</b></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--green)"></div><b>③ 버퍼 계좌에 80만원 이체</b> (1일 소진분만큼)</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>④ 고정비 자동이체 정상 처리 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--muted)"></div>⑤ 남은 잔액 = 이번 달 진짜 쓸 수 있는 돈</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-day">말일</div>
+        <div class="tl-sub">30·31일</div>
+      </div>
+      <div class="tl-dot" style="background:var(--amber)"></div>
+      <div class="tl-card" onclick="toggleTl(this)">
+        <div class="tl-card-head">
+          <div class="tl-card-title">마무리 점검</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tl-badge" style="background:var(--amber-bg);color:var(--amber)">5분</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-divider"></div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>카드 앱에서 다음달 1일 최종 청구 예정액 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>버퍼 잔액으로 커버 가능한지 확인</div>
+          <div class="tl-task"><div class="tl-task-dot" style="background:var(--amber)"></div>뱅샐 쿠팡 지출 훑어보기</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-strip">
+    <span class="flow-chip" style="background:var(--gray-bg);color:var(--muted)">급여 565만</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-chip" style="background:var(--green-bg);color:var(--green)">저축 150만</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-chip" style="background:var(--purple-bg);color:var(--purple)">버퍼 80만</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-chip" style="background:var(--red-bg);color:var(--red)">고정비 153만</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-chip" style="background:var(--green-bg);color:var(--green)">생활 182만</span>
+  </div>
+
+  <div class="quarter-card">
+    <div class="quarter-title">분기 1회 추가 루틴 (3·6·9·12월)</div>
+    <div class="quarter-grid">
+      <div class="quarter-item"><div class="quarter-item-dot"></div>3개월 지출 패턴 리뷰</div>
+      <div class="quarter-item"><div class="quarter-item-dot"></div>RSU 베스팅 잔액 확인</div>
+      <div class="quarter-item"><div class="quarter-item-dot"></div>안 쓰는 구독 정리</div>
+      <div class="quarter-item"><div class="quarter-item-dot"></div>비상금 460만 달성 확인</div>
+      <div class="quarter-item"><div class="quarter-item-dot"></div>저축·투자 잔액 점검</div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────── PAGE 3: 카드 ───────────────── -->
+<div class="page" id="page-card">
+  <div class="page-header">
+    <div class="page-title">카드<br>역할 분리</div>
+    <div class="page-subtitle">하나 스카이패스 실적 70만원 달성 구조</div>
+  </div>
+
+  <div class="card-section">
+    <div class="section-title">카드별 역할</div>
+
+    <div class="card-role">
+      <div class="card-role-head">
+        <div class="card-icon" style="background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#7EB3FF">하나</div>
+        <div class="card-role-info">
+          <div class="card-role-name">하나 스카이패스</div>
+          <div class="card-role-tag">고정비 자동청구 + 마트·주유 = 실적 70만</div>
+        </div>
+        <div class="card-role-amount" style="color:var(--blue)">~70만</div>
+      </div>
+      <div class="card-role-body">
+        <div class="card-role-items">
+          <span class="card-role-item">넷플릭스</span>
+          <span class="card-role-item">애플 서비스</span>
+          <span class="card-role-item">유튜브</span>
+          <span class="card-role-item">쿠팡멤버십</span>
+          <span class="card-role-item">클로드</span>
+          <span class="card-role-item">카카오서랍</span>
+          <span class="card-role-item">네이버</span>
+          <span class="card-role-item">쿠쿠렌탈</span>
+          <span class="card-role-item">KT요금제</span>
+          <span class="card-role-item">아이폰할부</span>
+          <span class="card-role-item">마트·주유 32만</span>
+        </div>
+        <div class="hana-note">
+          <strong>실적 구조</strong> — 구독 자동청구 37.9만 + 마트·주유 32만 = <strong>약 70만원</strong><br>→ 대출이자 감면 혜택 + 스카이패스 마일리지 적립
+        </div>
+      </div>
+    </div>
+
+    <div class="card-role">
+      <div class="card-role-head">
+        <div class="card-icon" style="background:linear-gradient(135deg,#1a3a20,#2a6b3a);color:#6EE7A0">쿠팡</div>
+        <div class="card-role-info">
+          <div class="card-role-name">쿠팡 와우 카드</div>
+          <div class="card-role-tag">온라인 생활비 전용 · 한도 118만</div>
+        </div>
+        <div class="card-role-amount" style="color:var(--green)">118만</div>
+      </div>
+      <div class="card-role-body">
+        <div class="card-role-items">
+          <span class="card-role-item">식료품</span>
+          <span class="card-role-item">생활용품</span>
+          <span class="card-role-item">쿠팡 구매 전반</span>
+          <span class="card-role-item">온라인 쇼핑</span>
+        </div>
+        <div class="hana-note" style="background:var(--green-bg);border-color:rgba(52,199,123,0.2);color:rgba(52,199,123,0.9)">
+          <strong style="color:var(--green)">핵심</strong> — 이 카드 한 달 사용액이 118만원 안에 있으면 생활비 버킷 OK
+        </div>
+      </div>
+    </div>
+
+    <div class="card-role">
+      <div class="card-role-head">
+        <div class="card-icon" style="background:linear-gradient(135deg,#2a1a1a,#4a2222);color:#F0A0A0">현대</div>
+        <div class="card-role-info">
+          <div class="card-role-name">현대카드 블랙</div>
+          <div class="card-role-tag">여가·외식 전용 · 한도 32만</div>
+        </div>
+        <div class="card-role-amount" style="color:var(--muted)">32만</div>
+      </div>
+      <div class="card-role-body">
+        <div class="card-role-items">
+          <span class="card-role-item">홍대 외출</span>
+          <span class="card-role-item">술자리</span>
+          <span class="card-role-item">카페</span>
+          <span class="card-role-item">문화생활</span>
+        </div>
+        <div class="hana-note" style="background:var(--gray-bg);border-color:var(--border);color:var(--muted)">
+          이 카드 32만원 소진해도 죄책감 없음 — 원래 그 용도로 설계된 버킷이에요
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">결제일 설정</div>
+    <div class="card-role" style="padding:0">
+      <div style="padding:16px">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">세 카드 모두 결제일 1일 권장</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px">
+            <span style="color:var(--muted)">현대카드</span>
+            <span>결제일 1일 → 이용기간 전전월 20일~전월 19일</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px">
+            <span style="color:var(--muted)">하나카드</span>
+            <span>결제일 1일 → 이용기간 전전월 19일~전월 18일</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px">
+            <span style="color:var(--muted)">국민카드</span>
+            <span>결제일 1일 → 전월 1일~전월 말일</span>
+          </div>
+        </div>
+        <div class="hana-note" style="margin-top:12px;background:var(--amber-bg);border-color:rgba(245,166,35,0.2);color:rgba(245,166,35,0.9)">
+          <strong style="color:var(--amber)">25일 급여 → 6일 뒤 1일 결제</strong> — 잔액 부족 없이 안전하게 처리되고, 관리 포인트가 월 1회로 통일돼요
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────── BOTTOM NAV ───────────────── -->
+<nav class="nav">
+  <button class="nav-item active" onclick="switchPage('bucket', this)">
+    <span class="nav-icon">◉</span>
+    <span>버킷</span>
+  </button>
+  <button class="nav-item" onclick="switchPage('cal', this)">
+    <span class="nav-icon">◷</span>
+    <span>캘린더</span>
+  </button>
+  <button class="nav-item" onclick="switchPage('card', this)">
+    <span class="nav-icon">▣</span>
+    <span>카드</span>
+  </button>
+</nav>
+
+<script>
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toggleBucket(card) {
+  const body = card.querySelector('.bucket-body');
+  const chevron = card.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+
+function toggleTl(card) {
+  const body = card.querySelector('.tl-card-body');
+  const chevron = card.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+</script>
+</body>
+</html>
